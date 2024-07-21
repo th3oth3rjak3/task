@@ -13,15 +13,19 @@
 //! * Reset the entire app, removing all entries.
 
 #![deny(missing_docs)]
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![warn(dead_code)]
 #![warn(unused_variables)]
 
 use clap::Parser;
 use commands::Commands;
+use database::sqlite::Database;
+use domain::Task;
 use errors::TaskError;
 
 pub mod commands;
+pub mod database;
+pub mod domain;
 pub mod errors;
 pub mod handlers;
 
@@ -30,26 +34,57 @@ pub mod handlers;
 #[command(version, about, long_about=None)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    commands: Commands,
 }
 
 fn main() {
-    let args = Cli::parse();
-    let result = match args.command {
-        Commands::Add(words) => handlers::add(words.words),
-    };
+    let app = Cli::parse();
+    let mut db = Database::new();
+    db.migrate();
+    match app.commands {
+        Commands::Add(words) => {
+            let outcome = handlers::add(&mut db, words.words);
+            todo!();
+        }
+        Commands::Remove(tasks) => {
+            let outcomes = handlers::remove(tasks.task_numbers);
+            todo!();
+        }
+        Commands::ListCompleted(_) => {
+            let result = handlers::get_completed_tasks(&mut db);
 
-    match result {
-        Ok(msg) => {
-            println!("{}", msg);
+            match result {
+                Ok(tasks) => show_completed_tasks(tasks),
+                Err(err) => handle_errors(err),
+            }
         }
-        Err(TaskError::AddError(msg)) => {
-            println!("{}", msg);
+        Commands::ListIncomplete(_) => {
+            let result = handlers::get_incomplete_tasks(&mut db);
+
+            match result {
+                Ok(tasks) => show_incomplete_tasks(tasks),
+                Err(err) => handle_errors(err),
+            }
         }
-        Err(TaskError::NumberOutOfRange(msg)) => {
-            println!("{}", msg);
+        Commands::Do(tasks) => {
+            let outcomes = handlers::mark_complete(tasks.task_numbers);
+            todo!();
         }
     }
+}
+
+fn show_completed_tasks(tasks: Vec<Task>) {
+    println!("Number of completed tasks: {}", tasks.len());
+    todo!();
+}
+
+fn show_incomplete_tasks(tasks: Vec<Task>) {
+    println!("Number of incomplete tasks: {}", tasks.len());
+    todo!();
+}
+
+fn handle_errors(err: TaskError) {
+    todo!();
 }
 
 #[test]

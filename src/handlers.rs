@@ -2,9 +2,8 @@
 //! for each command. Handlers are functions that are executed depending
 //! on which command was requested by the user.
 
+use crate::{database::task_repository::TaskRepository, domain::Task, errors::TaskError};
 use std::collections::HashSet;
-
-use crate::errors::TaskError;
 
 /// `add` adds a single task to the task list.
 ///
@@ -17,10 +16,21 @@ use crate::errors::TaskError;
 /// the contents of the task. e.g. `["walk", "the", "dog"]` or `["walk the dog"]`
 ///
 /// ### Returns
-/// * `String` - A message to be printed to indicate success.
+/// * `Task` - The task that was added successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn add(words: Vec<String>) -> Result<String, TaskError> {
-    todo!();
+pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Task, TaskError> {
+    // trim/join words into sentence
+    let description = words
+        .into_iter()
+        .map(|word| word.trim().to_string())
+        .collect::<Vec<String>>()
+        .join(" ");
+
+    // generate new task with Task::new()
+    let task = Task::new(description);
+
+    // save into database using repo.
+    task_repo.add(task)
 }
 
 /// `remove` deletes 1 or more items from the task list.
@@ -35,11 +45,12 @@ pub fn add(words: Vec<String>) -> Result<String, TaskError> {
 /// task number, it will return a `TaskError::NumberOutOfRange`
 ///
 /// ### Returns
-/// * `String` - A message to be printed to indicate success.
+/// * `Task` - The task that was removed successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn remove(numbers: Vec<u16>) -> Result<Vec<String>, TaskError> {
+pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
     // TODO: filter the list of items to ensure that the list is unique.
     // This prevents trying to remove an item twice.
+    numbers.iter().for_each(|number| println!("{:?}", number));
     todo!();
 }
 
@@ -50,13 +61,29 @@ pub fn remove(numbers: Vec<u16>) -> Result<Vec<String>, TaskError> {
 /// These are the numbers that the user sees in the terminal after running the `list`
 /// command.
 ///
+/// ### Errors
+/// * When a provided item number is a valid u16, but not a valid
+/// task number, it will return a `TaskError::NumberOutOfRange`
+///
 /// ### Returns
-/// * `String` - A message to be printed to indicate success.
+/// * `Task` - The task that was successfully marked as done.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn mark_complete(numbers: Vec<u16>) -> Result<Vec<String>, TaskError> {
+pub fn mark_complete(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
     // TODO: filter the list of items to ensure that the list is unique.
     // This prevents trying to mark an item completed twice.
+    numbers.iter().for_each(|number| println!("{:?}", number));
     todo!();
+}
+
+/// `get_completed_tasks` gets a list of all tasks which have no
+/// completion date.
+pub fn get_completed_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>, TaskError> {
+    task_repo.completed_tasks()
+}
+
+/// `get_incomplete_tasks` gets a list of all tasks which have a completion date.
+pub fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>, TaskError> {
+    task_repo.incomplete_tasks()
 }
 
 /// `remove_duplicates` filters out any duplicate numbers to prevent

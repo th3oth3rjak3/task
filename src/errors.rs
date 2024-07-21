@@ -3,8 +3,9 @@
 
 /// `TaskError` is an error enum that represents
 /// all possible failures for the task application.
+#[derive(Debug)]
 pub enum TaskError {
-    /// `AddError` is used when an expected error occurs when adding a new
+    /// `AddError` is used when an unexpected error occurs when adding a new
     /// task to the task list.
     AddError(String),
     /// `NumberOutOfRange` is used when an item number is not a valid item number.
@@ -13,4 +14,7 @@ pub enum TaskError {
     /// this error when expecting a u8, but the user enters a negative number, those
     /// should be handled during input validation.
     NumberOutOfRange(String),
+    /// `FetchError` is an error that is returned when a database error occurs when
+    /// fetching items.
+    FetchError,
 }
