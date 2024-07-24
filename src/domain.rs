@@ -4,6 +4,8 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
+use crate::errors::TaskError;
+
 /// `Task` represents a basic unit of work that a user wants
 /// to accomplish.
 #[derive(Serialize, Deserialize)]
@@ -25,4 +27,17 @@ impl Task {
             complete_date: None,
         }
     }
+}
+
+/// `TaskRepository` is a trait which contains all of the database
+/// operations for managing tasks in the task list.
+pub trait TaskRepository {
+    /// `completed_tasks` returns a list of completed tasks.
+    fn completed_tasks(&mut self) -> Result<Vec<Task>, TaskError>;
+
+    /// `incomplete_tasks` returns a list of incomplete tasks.
+    fn incomplete_tasks(&mut self) -> Result<Vec<Task>, TaskError>;
+
+    /// `add` inserts a new task into the database.
+    fn add(&mut self, task: Task) -> Result<Task, TaskError>;
 }

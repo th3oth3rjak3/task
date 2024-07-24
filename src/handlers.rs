@@ -2,7 +2,10 @@
 //! for each command. Handlers are functions that are executed depending
 //! on which command was requested by the user.
 
-use crate::{database::task_repository::TaskRepository, domain::Task, errors::TaskError};
+use crate::{
+    domain::{Task, TaskRepository},
+    errors::TaskError,
+};
 use std::collections::HashSet;
 
 /// `add` adds a single task to the task list.
