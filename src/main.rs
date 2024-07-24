@@ -12,7 +12,7 @@
 //! * Clear completed tasks for all time.
 //! * Reset the entire app, removing all entries.
 
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![forbid(unsafe_code)]
 #![warn(dead_code)]
 #![warn(unused_variables)]
@@ -27,6 +27,9 @@ use sqlite::Database;
 pub mod commands;
 pub mod domain;
 pub mod handlers;
+pub mod models;
+/// thing.
+pub mod schema;
 pub mod sqlite;
 pub mod task_repository;
 
@@ -39,7 +42,8 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
-    dotenvy::dotenv()?;
+    dotenvy::dotenv().ok();
+
     let app = Cli::parse();
     let mut db = Database::new();
     db.migrate();

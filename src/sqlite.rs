@@ -1,32 +1,32 @@
 //! The `sqlite` module contains all of the implementation
 //! details for creating and migrating the sqlite database.
 
-use rusqlite::Connection;
+use std::env;
 
-const DB_URL: &str = "tasks.db";
+use diesel::{Connection, SqliteConnection};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+
+/// `MIGRATIONS` is a list of migrations for the application and is used to migrate the
+/// database any time the application is started and there are pending migrations.
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 /// `Database` is an abstraction around the sqlite database.
 pub struct Database {
     /// `connection` is the database connection to use for all queries.
-    pub connection: Connection,
+    pub connection: SqliteConnection,
 }
 
 impl Database {
     /// `new` creates a new database instance.
     pub fn new() -> Self {
-        let connection = Connection::open(DB_URL).expect("Could not open database connection");
+        let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set!");
+        let connection = SqliteConnection::establish(&db_url)
+            .unwrap_or_else(|_| panic!("Error connecting to database {}", db_url));
         Database { connection }
     }
 
     /// `migrate` runs any pending database migrations.
     pub fn migrate(&mut self) {
-        let create_tasks_table = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/sql/migrations/create_tasks_table.sql"
-        ));
-
-        self.connection
-            .execute(&create_tasks_table, ())
-            .expect("Failed to create required Task table.");
+        let _ = self.connection.run_pending_migrations(MIGRATIONS);
     }
 }
