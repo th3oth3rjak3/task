@@ -3,10 +3,10 @@
 //! for Tasks in the task list.
 
 use crate::domain::{Task, TaskRepository};
-use crate::sqlite::Database;
+use crate::sqlite;
 use anyhow::Result;
 
-impl TaskRepository for Database {
+impl TaskRepository for sqlite::Database {
     fn completed_tasks(&mut self) -> Result<Vec<Task>> {
         todo!();
     }
