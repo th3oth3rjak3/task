@@ -2,7 +2,15 @@
 name = "task"
 version = "0.1.0"
 edition = "2021"
+authors = ["Jake Hathaway <jake.d.hathaway@gmail.com>"]
 
 [dependencies]
+anyhow = "1.0.86"
 chrono = { version = "0.4.38", features = ["serde"] }
 serde = {version = "1.0.204", features = ["derive"] }
+thiserror = "1.0.63"
+clap = { version = "4.5.9", features = ["derive"] }
+rusqlite = { version = "0.31.0", features = ["bundled", "chrono"] }
+dotenvy = "0.15.7"
+
+

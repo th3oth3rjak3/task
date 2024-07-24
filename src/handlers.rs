@@ -2,10 +2,9 @@
 //! for each command. Handlers are functions that are executed depending
 //! on which command was requested by the user.
 
-use crate::{
-    domain::{Task, TaskRepository},
-    errors::TaskError,
-};
+use anyhow::Result;
+
+use crate::domain::{Task, TaskRepository};
 use std::collections::HashSet;
 
 /// `add` adds a single task to the task list.
@@ -21,7 +20,7 @@ use std::collections::HashSet;
 /// ### Returns
 /// * `Task` - The task that was added successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Task, TaskError> {
+pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Task> {
     // trim/join words into sentence
     let description = words
         .into_iter()
@@ -50,7 +49,7 @@ pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Ta
 /// ### Returns
 /// * `Task` - The task that was removed successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
+pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task>> {
     // TODO: filter the list of items to ensure that the list is unique.
     // This prevents trying to remove an item twice.
     numbers.iter().for_each(|number| println!("{:?}", number));
@@ -71,7 +70,7 @@ pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
 /// ### Returns
 /// * `Task` - The task that was successfully marked as done.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn mark_complete(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
+pub fn mark_complete(numbers: Vec<u16>) -> Vec<Result<Task>> {
     // TODO: filter the list of items to ensure that the list is unique.
     // This prevents trying to mark an item completed twice.
     numbers.iter().for_each(|number| println!("{:?}", number));
@@ -80,12 +79,12 @@ pub fn mark_complete(numbers: Vec<u16>) -> Vec<Result<Task, TaskError>> {
 
 /// `get_completed_tasks` gets a list of all tasks which have no
 /// completion date.
-pub fn get_completed_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>, TaskError> {
+pub fn get_completed_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>> {
     task_repo.completed_tasks()
 }
 
 /// `get_incomplete_tasks` gets a list of all tasks which have a completion date.
-pub fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>, TaskError> {
+pub fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>> {
     task_repo.incomplete_tasks()
 }
 
