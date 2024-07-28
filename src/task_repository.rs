@@ -26,6 +26,9 @@ pub trait TaskRepository {
 
     /// `delete_task` removes the task from the database.
     async fn delete_task(&mut self, task_id: i64) -> Result<()>;
+
+    /// `clear_completed` deletes the completed items from the database.
+    async fn clear_completed(&mut self) -> Result<()>;
 }
 
 #[async_trait]
@@ -120,5 +123,13 @@ impl TaskRepository for sqlite::Database {
         .await
         .map(|_| ())
         .map_err(Error::new)
+    }
+
+    async fn clear_completed(&mut self) -> Result<()> {
+        sqlx::query!("DELETE FROM Tasks WHERE complete_date IS NOT NULL;")
+            .execute(&mut self.connection)
+            .await
+            .map(|_| ())
+            .map_err(Error::new)
     }
 }

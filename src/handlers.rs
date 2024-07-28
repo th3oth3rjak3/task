@@ -176,6 +176,24 @@ pub async fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result
     Ok(())
 }
 
+/// `clear_completed` removes all of the completed items from the database.
+pub async fn clear_completed(task_repo: &mut impl TaskRepository) -> Result<()> {
+    let completed = task_repo.completed_tasks().await?;
+
+    println!();
+    if completed.is_empty() {
+        println!("There are no completed tasks to clear. 🤷");
+        return Ok(());
+    }
+
+    match task_repo.clear_completed().await {
+        Ok(()) => println!("Cleared all completed tasks. ✅"),
+        Err(err) => println!("Failed to clear completed tasks. Error: {}", err),
+    }
+
+    Ok(())
+}
+
 /// `remove_duplicates` filters out any duplicate numbers to prevent
 /// processing an item number more than once.
 ///

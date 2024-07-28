@@ -36,6 +36,10 @@ pub struct DoArgs {
 #[derive(Args)]
 pub struct ListArgs; // TODO: decide if sort option is wanted here.
 
+/// `ClearArgs` is the set of arguments required for a `Clear` command.
+#[derive(Args)]
+pub struct ClearArgs;
+
 /// `Commands` is an enum which represents all of the possible
 /// commands in the `task` application.
 #[derive(Subcommand)]
@@ -53,4 +57,7 @@ pub enum Commands {
     /// Lists the incomplete tasks.
     #[command(name = "ls")]
     ListIncomplete(ListArgs),
+    /// Clear all the completed tasks.
+    #[command(name = "cls")]
+    Clear(ClearArgs),
 }
