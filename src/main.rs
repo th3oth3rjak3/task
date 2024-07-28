@@ -23,7 +23,6 @@ use commands::Commands;
 use sqlite::Database;
 
 pub mod commands;
-pub mod domain;
 pub mod handlers;
 pub mod sqlite;
 pub mod task_repository;
