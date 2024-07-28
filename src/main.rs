@@ -20,16 +20,11 @@
 use anyhow::Result;
 use clap::Parser;
 use commands::Commands;
-use domain::Task;
-use dotenvy;
 use sqlite::Database;
 
 pub mod commands;
 pub mod domain;
 pub mod handlers;
-pub mod models;
-/// thing.
-pub mod schema;
 pub mod sqlite;
 pub mod task_repository;
 
@@ -41,46 +36,37 @@ struct Cli {
     commands: Commands,
 }
 
-fn main() -> Result<()> {
+#[async_std::main]
+async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
     let app = Cli::parse();
-    let mut db = Database::new();
-    db.migrate();
+
+    let mut db = Database::new().await;
+
     match app.commands {
-        Commands::Add(words) => {
-            let outcome = handlers::add(&mut db, words.words);
-            todo!();
-        }
-        Commands::Remove(tasks) => {
-            let outcomes = handlers::remove(tasks.task_numbers);
-            todo!();
-        }
-        Commands::ListCompleted(_) => {
-            let tasks = handlers::get_completed_tasks(&mut db)?;
-            show_completed_tasks(tasks);
-        }
-        Commands::ListIncomplete(_) => {
-            let tasks = handlers::get_incomplete_tasks(&mut db)?;
-            show_incomplete_tasks(tasks);
-        }
-        Commands::Do(tasks) => {
-            let outcomes = handlers::mark_complete(tasks.task_numbers);
-            todo!();
-        }
+        Commands::Add(words) => handlers::add(&mut db, words.words)
+            .await
+            .unwrap_or_else(show_error),
+        Commands::Remove(tasks) => handlers::remove(&mut db, tasks.task_numbers)
+            .await
+            .unwrap_or_else(show_error),
+        Commands::ListCompleted(_) => handlers::get_completed_tasks(&mut db)
+            .await
+            .unwrap_or_else(show_error),
+        Commands::ListIncomplete(_) => handlers::get_incomplete_tasks(&mut db)
+            .await
+            .unwrap_or_else(show_error),
+        Commands::Do(tasks) => handlers::mark_complete(&mut db, tasks.task_numbers)
+            .await
+            .unwrap_or_else(show_error),
     }
 
     Ok(())
 }
 
-fn show_completed_tasks(tasks: Vec<Task>) {
-    println!("Number of completed tasks: {}", tasks.len());
-    todo!();
-}
-
-fn show_incomplete_tasks(tasks: Vec<Task>) {
-    println!("Number of incomplete tasks: {}", tasks.len());
-    todo!();
+fn show_error(err: anyhow::Error) {
+    eprintln!("Unexpected error occurred: {}", err);
 }
 
 #[test]

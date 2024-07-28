@@ -3,6 +3,7 @@
 //! on which command was requested by the user.
 
 use anyhow::Result;
+use chrono::Local;
 
 use crate::domain::{Task, TaskRepository};
 use std::collections::HashSet;
@@ -20,7 +21,7 @@ use std::collections::HashSet;
 /// ### Returns
 /// * `Task` - The task that was added successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Task> {
+pub async fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<()> {
     // trim/join words into sentence
     let description = words
         .into_iter()
@@ -32,7 +33,11 @@ pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Ta
     let task = Task::new(description);
 
     // save into database using repo.
-    task_repo.add(task)
+    let new_task = task_repo.add(task).await?;
+
+    println!("\nAdded \"{}\" to your task list. 🖊️", new_task.description);
+
+    Ok(())
 }
 
 /// `remove` deletes 1 or more items from the task list.
@@ -49,11 +54,32 @@ pub fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Result<Ta
 /// ### Returns
 /// * `Task` - The task that was removed successfully.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task>> {
-    // TODO: filter the list of items to ensure that the list is unique.
-    // This prevents trying to remove an item twice.
-    numbers.iter().for_each(|number| println!("{:?}", number));
-    todo!();
+pub async fn remove(task_repo: &mut impl TaskRepository, numbers: Vec<u16>) -> Result<()> {
+    let unique = remove_duplicates(numbers);
+
+    let incomplete = task_repo.incomplete_tasks().await?;
+
+    println!();
+
+    if incomplete.is_empty() {
+        println!("There are no tasks to delete. 🤷");
+        return Ok(());
+    }
+
+    for item_number in unique.iter() {
+        if usize::from(*item_number) > incomplete.len() || item_number < &1 {
+            println!("Invalid task number: {} 🤕", item_number);
+            continue;
+        }
+
+        let task: &Task = &incomplete[usize::from(*item_number) - 1];
+        match task_repo.delete_task(task.id).await {
+            Ok(_) => println!("Removed task \"{}\". 🗑️", task.description),
+            Err(err) => println!("Failed to remove task \"{}\". Error: {}", item_number, err),
+        }
+    }
+
+    Ok(())
 }
 
 /// `mark_complete` marks all items in the provided list as finished.
@@ -70,22 +96,84 @@ pub fn remove(numbers: Vec<u16>) -> Vec<Result<Task>> {
 /// ### Returns
 /// * `Task` - The task that was successfully marked as done.
 /// * `TaskError` - When an error occurs, this is returned to tell the user what went wrong.
-pub fn mark_complete(numbers: Vec<u16>) -> Vec<Result<Task>> {
-    // TODO: filter the list of items to ensure that the list is unique.
-    // This prevents trying to mark an item completed twice.
-    numbers.iter().for_each(|number| println!("{:?}", number));
-    todo!();
+pub async fn mark_complete(task_repo: &mut impl TaskRepository, numbers: Vec<u16>) -> Result<()> {
+    let unique = remove_duplicates(numbers);
+
+    let incomplete = task_repo.incomplete_tasks().await?;
+
+    println!();
+    if incomplete.is_empty() {
+        println!("There are no tasks to complete. 🤷");
+        return Ok(());
+    }
+
+    for item_number in unique.iter() {
+        if usize::from(*item_number) > incomplete.len() || item_number < &1 {
+            println!("Invalid task number: {} 🤕", item_number,);
+            continue;
+        }
+
+        let existing: &Task = &incomplete[usize::from(*item_number) - 1];
+        match task_repo.mark_complete(existing.id).await {
+            Ok(task) => println!("Marked task \"{}\" as completed. ✅", task.description),
+            Err(err) => println!(
+                "Failed to mark task \"{}\" as completed. Error: {}",
+                item_number, err
+            ),
+        }
+    }
+
+    Ok(())
 }
 
 /// `get_completed_tasks` gets a list of all tasks which have no
 /// completion date.
-pub fn get_completed_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>> {
-    task_repo.completed_tasks()
+pub async fn get_completed_tasks(task_repo: &mut impl TaskRepository) -> Result<()> {
+    let tasks = task_repo.completed_tasks().await?;
+
+    println!();
+
+    if tasks.is_empty() {
+        println!("You have no completed tasks! Why not do some work? 🔨🪚");
+        return Ok(());
+    }
+
+    println!("🎉 You have completed the following tasks:");
+    tasks.into_iter().enumerate().for_each(|(idx, task)| {
+        println!(
+            "  {}. {} (completed: {})",
+            idx + 1,
+            task.description,
+            task.complete_date
+                .map(|dt| dt
+                    .with_timezone(&Local)
+                    .format("%m/%d/%Y @ %I:%M%p")
+                    .to_string())
+                .unwrap_or("".to_string())
+        )
+    });
+
+    Ok(())
 }
 
 /// `get_incomplete_tasks` gets a list of all tasks which have a completion date.
-pub fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result<Vec<Task>> {
-    task_repo.incomplete_tasks()
+pub async fn get_incomplete_tasks(task_repo: &mut impl TaskRepository) -> Result<()> {
+    let tasks = task_repo.incomplete_tasks().await?;
+
+    println!();
+
+    if tasks.is_empty() {
+        println!("You have no more tasks! Why not take a vacation? 🏖️");
+        return Ok(());
+    }
+
+    println!("You have the following tasks:");
+    tasks
+        .into_iter()
+        .enumerate()
+        .for_each(|(idx, task)| println!("  {}. {}", idx + 1, task.description));
+
+    Ok(())
 }
 
 /// `remove_duplicates` filters out any duplicate numbers to prevent

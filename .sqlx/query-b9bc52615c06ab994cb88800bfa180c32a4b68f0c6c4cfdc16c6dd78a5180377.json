@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                UPDATE Tasks\n                SET complete_date = ?\n                WHERE id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "b9bc52615c06ab994cb88800bfa180c32a4b68f0c6c4cfdc16c6dd78a5180377"
+}

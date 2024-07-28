@@ -11,9 +11,13 @@ serde = {version = "1.0.204", features = ["derive"] }
 thiserror = "1.0.63"
 clap = { version = "4.5.9", features = ["derive"] }
 dotenvy = "0.15.7"
-libsqlite3-sys = { version = "0.29.0", features = ["bundled"] }
-diesel = { version = "2.2.2", features = ["chrono", "sqlite"] }
-diesel_migrations = { version = "2.2.0", features = ["sqlite"] }
+async-std = {version = "1.12.0", features = ["attributes"] }
+async-trait = "0.1.81"
+dirs = "5.0.1"
 
+[dependencies.sqlx]
+version = "0.8.0"
+features = ["sqlite", "macros", "runtime-async-std", "derive", "migrate", "chrono"]
 
-
+[profile.dev.package.sqlx-macros]
+opt-level = 3
