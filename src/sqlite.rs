@@ -1,9 +1,8 @@
 //! The `sqlite` module contains all of the implementation
 //! details for creating and migrating the sqlite database.
 
-
 use sea_orm::{prelude::*, ConnectOptions};
-use std::{path::Path, time::Duration};
+use std::time::Duration;
 
 /// `Database` is an abstraction around the sqlite database.
 pub struct Database {
@@ -29,11 +28,12 @@ impl Database {
 async fn get_connection() -> DatabaseConnection {
     // used when there is not local environment variable set.
     let data_url = |_| -> String {
-        Path::new("sqlite://")
-            .join(dirs::data_dir().expect("Data directory should exist"))
-            .join("tasks.sqlite3?mode=rwc")
+        let dir = dirs::data_dir()
+            .expect("Data directory should exist")
             .to_string_lossy()
-            .to_string()
+            .to_string();
+
+        format!("sqlite://{}/tasks.sqlite3?mode=rwc", dir)
     };
 
     let url = std::env::var("DATABASE_URL").unwrap_or_else(data_url);
