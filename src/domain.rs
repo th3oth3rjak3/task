@@ -1,8 +1,6 @@
 //! The `domain` module is used to document all of the application
 //! domain specific types.
 
-use anyhow::Result;
-use async_trait::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -38,24 +36,4 @@ impl Task {
             complete_date,
         }
     }
-}
-
-/// `TaskRepository` is a trait which contains all of the database
-/// operations for managing tasks in the task list.
-#[async_trait]
-pub trait TaskRepository {
-    /// `completed_tasks` returns a list of completed tasks.
-    async fn completed_tasks(&mut self) -> Result<Vec<Task>>;
-
-    /// `incomplete_tasks` returns a list of incomplete tasks.
-    async fn incomplete_tasks(&mut self) -> Result<Vec<Task>>;
-
-    /// `add` inserts a new task into the database.
-    async fn add(&mut self, task: Task) -> Result<Task>;
-
-    /// `mark_complete` sets the date and time the task was finished.
-    async fn mark_complete(&mut self, task_id: i64) -> Result<Task>;
-
-    /// `delete_task` removes the task from the database.
-    async fn delete_task(&mut self, task_id: i64) -> Result<()>;
 }

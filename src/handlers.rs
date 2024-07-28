@@ -5,7 +5,7 @@
 use anyhow::Result;
 use chrono::Local;
 
-use crate::domain::{Task, TaskRepository};
+use crate::{domain::Task, task_repository::TaskRepository};
 use std::collections::HashSet;
 
 /// `add` adds a single task to the task list.
