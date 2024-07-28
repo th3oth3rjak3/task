@@ -24,9 +24,9 @@ pub struct RemoveArgs {
 #[derive(Args)]
 pub struct CompleteArgs; // TODO: decide if sort option is desired here.
 
-/// `DoArgs` is the set of arguments required for a `Do` command.
+/// `FinishTaskArgs` is the set of arguments required for a `FinishTask` command.
 #[derive(Args)]
-pub struct DoArgs {
+pub struct FinishTaskArgs {
     /// A space separated list of task numbers to mark as completed.
     #[arg(required = true)]
     pub task_numbers: Vec<u16>,
@@ -38,7 +38,7 @@ pub struct ListArgs; // TODO: decide if sort option is wanted here.
 
 /// `ClearArgs` is the set of arguments required for a `Clear` command.
 #[derive(Args)]
-pub struct ClearArgs;
+pub struct ClearArgs; // TODO: decide if we need these for flags like last week, etc.
 
 /// `Commands` is an enum which represents all of the possible
 /// commands in the `task` application.
@@ -50,7 +50,8 @@ pub enum Commands {
     #[command(name = "rm")]
     Remove(RemoveArgs),
     /// Marks one or more tasks as completed.
-    Do(DoArgs),
+    #[command(name = "do")]
+    FinishTask(FinishTaskArgs),
     /// Lists all of the completed tasks.
     #[command(name = "cpl")]
     ListCompleted(CompleteArgs),
@@ -59,5 +60,5 @@ pub enum Commands {
     ListIncomplete(ListArgs),
     /// Clear all the completed tasks.
     #[command(name = "cls")]
-    Clear(ClearArgs),
+    ClearCompleted(ClearArgs),
 }

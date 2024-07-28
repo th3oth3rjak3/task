@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "entity", "migration"]
+
 [package]
 name = "task"
 version = "0.1.0"
@@ -5,6 +8,8 @@ edition = "2021"
 authors = ["Jake Hathaway <jake.d.hathaway@gmail.com>"]
 
 [dependencies]
+migration = { path = "migration" }
+entity = { path = "entity" }
 anyhow = "1.0.86"
 chrono = { version = "0.4.38", features = ["serde"] }
 serde = {version = "1.0.204", features = ["derive"] }
@@ -14,10 +19,5 @@ dotenvy = "0.15.7"
 async-std = {version = "1.12.0", features = ["attributes"] }
 async-trait = "0.1.81"
 dirs = "5.0.1"
-
-[dependencies.sqlx]
-version = "0.8.0"
-features = ["sqlite", "macros", "runtime-async-std", "derive", "migrate", "chrono"]
-
-[profile.dev.package.sqlx-macros]
-opt-level = 3
+time = "0.3.36"
+sea-orm = { version = "0.12.15", features = ["sqlx-sqlite", "runtime-async-std-rustls", "with-chrono"] }

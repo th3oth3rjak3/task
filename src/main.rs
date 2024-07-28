@@ -57,10 +57,12 @@ async fn main() -> Result<()> {
         Commands::ListIncomplete(_) => handlers::get_incomplete_tasks(&mut db)
             .await
             .unwrap_or_else(show_error),
-        Commands::Do(tasks) => handlers::mark_complete(&mut db, tasks.task_numbers)
+        Commands::FinishTask(tasks) => handlers::mark_complete(&mut db, tasks.task_numbers)
             .await
             .unwrap_or_else(show_error),
-        Commands::Clear(_) => handlers::clear_completed(&mut db).await.unwrap_or_else(show_error),
+        Commands::ClearCompleted(_) => handlers::clear_completed(&mut db)
+            .await
+            .unwrap_or_else(show_error),
     }
 
     Ok(())

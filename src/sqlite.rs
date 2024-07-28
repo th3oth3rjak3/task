@@ -1,56 +1,49 @@
 //! The `sqlite` module contains all of the implementation
 //! details for creating and migrating the sqlite database.
 
-use sqlx::{migrate::Migrator, sqlite::SqliteConnectOptions, ConnectOptions, SqliteConnection};
 
-/// `MIGRATOR` is a list of migrations for the application and is used to migrate the
-/// database any time the application is started and there are pending migrations.
-pub static MIGRATOR: Migrator = sqlx::migrate!();
+use sea_orm::{prelude::*, ConnectOptions};
+use std::{path::Path, time::Duration};
 
 /// `Database` is an abstraction around the sqlite database.
 pub struct Database {
     /// `connection` is the database connection to use for all queries.
-    pub connection: SqliteConnection,
+    pub connection: DatabaseConnection,
 }
 
 impl Database {
     /// `new` creates a new database instance.
     pub async fn new() -> Self {
-        let mut connection = get_connection().await;
+        let connection = get_connection().await;
 
-        MIGRATOR
-            .run(&mut connection)
+        use migration::{Migrator, MigratorTrait};
+
+        Migrator::up(&connection, None)
             .await
-            .expect("Migrations should have ran successfully.");
+            .expect("Migrations should succeed");
 
         Database { connection }
     }
 }
 
-#[cfg(debug_assertions)]
-async fn get_connection() -> SqliteConnection {
-    use std::{env, str::FromStr};
+async fn get_connection() -> DatabaseConnection {
+    // used when there is not local environment variable set.
+    let data_url = |_| -> String {
+        Path::new("sqlite://")
+            .join(dirs::data_dir().expect("Data directory should exist"))
+            .join("tasks.sqlite3?mode=rwc")
+            .to_string_lossy()
+            .to_string()
+    };
 
-    let url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
+    let url = std::env::var("DATABASE_URL").unwrap_or_else(data_url);
 
-    SqliteConnectOptions::from_str(&url)
-        .unwrap()
-        .create_if_missing(true)
-        .connect()
+    let mut opts = ConnectOptions::new(&url);
+
+    opts.connect_timeout(Duration::from_secs(2))
+        .sqlx_logging(false);
+
+    sea_orm::Database::connect(opts)
         .await
-        .expect("Database connection to succeed")
-}
-
-#[cfg(not(debug_assertions))]
-async fn get_connection() -> SqliteConnection {
-    let db_path = dirs::data_dir()
-        .expect("cannot find home directory")
-        .join("tasks.sqlite3");
-
-    SqliteConnectOptions::new()
-        .filename(db_path)
-        .create_if_missing(true)
-        .connect()
-        .await
-        .expect("Database connection to succeed")
+        .expect("Database connection to succeed.")
 }

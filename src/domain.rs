@@ -1,12 +1,12 @@
 //! The `domain` module is used to document all of the application
 //! domain specific types.
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+
 
 /// `Task` represents a basic unit of work that a user wants
 /// to accomplish.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone, )]
 pub struct Task {
     /// `id` is the database id used to uniquely identify a task.
     pub id: i64,
@@ -23,17 +23,6 @@ impl Task {
             id: -1,
             description,
             complete_date: None,
-        }
-    }
-
-    /// `from_record` creates a new task from an entire database row.
-    pub fn from_record(id: i64, description: String, date: Option<NaiveDateTime>) -> Self {
-        let complete_date = date.map(|dt| dt.and_utc());
-
-        Task {
-            id,
-            description,
-            complete_date,
         }
     }
 }

@@ -4,8 +4,9 @@
 
 use anyhow::Result;
 use chrono::Local;
+use entity::task::{self};
 
-use crate::{domain::Task, task_repository::TaskRepository};
+use crate::task_repository::TaskRepository;
 use std::collections::HashSet;
 
 /// `add` adds a single task to the task list.
@@ -29,11 +30,8 @@ pub async fn add(task_repo: &mut impl TaskRepository, words: Vec<String>) -> Res
         .collect::<Vec<String>>()
         .join(" ");
 
-    // generate new task with Task::new()
-    let task = Task::new(description);
-
     // save into database using repo.
-    let new_task = task_repo.add(task).await?;
+    let new_task = task_repo.add(description).await?;
 
     println!("\nAdded \"{}\" to your task list. 🖊️", new_task.description);
 
@@ -72,7 +70,7 @@ pub async fn remove(task_repo: &mut impl TaskRepository, numbers: Vec<u16>) -> R
             continue;
         }
 
-        let task: &Task = &incomplete[usize::from(*item_number) - 1];
+        let task: &task::Model = &incomplete[usize::from(*item_number) - 1];
         match task_repo.delete_task(task.id).await {
             Ok(_) => println!("Removed task \"{}\". 🗑️", task.description),
             Err(err) => println!("Failed to remove task \"{}\". Error: {}", item_number, err),
@@ -113,7 +111,7 @@ pub async fn mark_complete(task_repo: &mut impl TaskRepository, numbers: Vec<u16
             continue;
         }
 
-        let existing: &Task = &incomplete[usize::from(*item_number) - 1];
+        let existing: &task::Model = &incomplete[usize::from(*item_number) - 1];
         match task_repo.mark_complete(existing.id).await {
             Ok(task) => println!("Marked task \"{}\" as completed. ✅", task.description),
             Err(err) => println!(
